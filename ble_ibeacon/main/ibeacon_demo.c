@@ -99,19 +99,12 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
         esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
         switch (scan_result->scan_rst.search_evt) {
         case ESP_GAP_SEARCH_INQ_RES_EVT:
-            /* Search for BLE iBeacon Packet */
-            if (esp_ble_is_ibeacon_packet(scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len)){
-                esp_ble_ibeacon_t *ibeacon_data = (esp_ble_ibeacon_t*)(scan_result->scan_rst.ble_adv);
-                ESP_LOGI(DEMO_TAG, "----------iBeacon Found----------");
-                ESP_LOGI(DEMO_TAG, "Device address: "ESP_BD_ADDR_STR"", ESP_BD_ADDR_HEX(scan_result->scan_rst.bda));
-                ESP_LOG_BUFFER_HEX("IBEACON_DEMO: Proximity UUID", ibeacon_data->ibeacon_vendor.proximity_uuid, ESP_UUID_LEN_128);
-
-                uint16_t major = ENDIAN_CHANGE_U16(ibeacon_data->ibeacon_vendor.major);
-                uint16_t minor = ENDIAN_CHANGE_U16(ibeacon_data->ibeacon_vendor.minor);
-                ESP_LOGI(DEMO_TAG, "Major: 0x%04x (%d)", major, major);
-                ESP_LOGI(DEMO_TAG, "Minor: 0x%04x (%d)", minor, minor);
-                ESP_LOGI(DEMO_TAG, "Measured power (RSSI at a 1m distance): %d dBm", ibeacon_data->ibeacon_vendor.measured_power);
-                ESP_LOGI(DEMO_TAG, "RSSI of packet: %d dbm", scan_result->scan_rst.rssi);
+            // All scanned BLE packets
+            if (memcmp(scan_result->scan_rst.bda, known_mac_addr_1, sizeof(known_mac_addr_1)) == 0 || 
+                memcmp(scan_result->scan_rst.bda, known_mac_addr_2, sizeof(known_mac_addr_2)) == 0) {
+                ESP_LOGI("BLE_DEVICE", "Found device with MAC address: "ESP_BD_ADDR_STR"", ESP_BD_ADDR_HEX(scan_result->scan_rst.bda));
+                ESP_LOGI("BLE_DEVICE", "RSSI: %d dBm", scan_result->scan_rst.rssi);
+                ESP_LOG_BUFFER_HEX("Advertise Data", scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len);
             }
             break;
         default:
